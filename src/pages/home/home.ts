@@ -6,33 +6,43 @@ import { GroceriesServiceProvider } from '../../providers/groceries-service/groc
 import { InputDialogServiceProvider } from '../../providers/input-dialog-service/input-dialog-service';
 import { SocialSharing } from '@ionic-native/social-sharing';
 
+
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
 export class HomePage {
+
   title = "Grocery";
+  
+  items = [];
+  errorMessage: string;
+
   constructor(public navCtrl: NavController, public toastCtrl: ToastController, public alertCtrl: AlertController, public dataService: GroceriesServiceProvider, public inputDialogService: InputDialogServiceProvider, public socialSharing: SocialSharing) {
+    dataService.dataChanged$.subscribe((dataChanged: boolean) => {
+      this.loadItems();
+    });
+  }
+
+  ionViewDidLoad() {
+    this.loadItems();
   }
 
   loadItems() {
-    return this.dataService.getItems();
+    this.dataService.getItems()
+      .subscribe(
+        items => this.items = items,
+        error => this.errorMessage = <any>error);
   }
 
-  removeItem(item, index) {
-    console.log("Removing Item - ", item, index);
-    const toast = this.toastCtrl.create({
-      message: 'Removing Item - ' + index + " ...",
-      duration: 3000
-    });
-    toast.present();
-    this.dataService.removeItem(index);  
+  removeItem(id) {
+    this.dataService.removeItem(id);  
   }
 
-  shareItem(item, index) {
-    console.log("Sharing Item - ", item, index);
+  shareItem(item) {
+    console.log("Sharing Item -", item);
     const toast = this.toastCtrl.create({
-      message: 'Sharing Item - ' + index + " ...",
+      message: 'Sharing Item - ' + item.name + " ...",
       duration: 3000
     });
 
@@ -65,5 +75,4 @@ export class HomePage {
     console.log("Adding Item");
     this.inputDialogService.showPrompt();
   }
-  
 }
